@@ -1,160 +1,121 @@
-# Lecture Transcripts: Image Representation & Processing in Excel
+# Study Guide: Computer Vision & Image Representation in Excel
 
 ---
 
-## Transcript 1: Introduction to Image Functions & Absolute Referencing in Excel
+## 1. Core Concept: Image Representation Continuum
+In computer vision, images can be viewed along a spectrum of dimensionality:
+* **Highest Dimension (Pixel Matrix):** Representing an image pixel-by-pixel as an explicit 2D grid/array of intensity values.
+* **Lowest Dimension (Functional Representation):** Representing an image continuously as a mathematical function $f(x, y)$, where pixel intensity is generated dynamically based on spatial coordinates $(x, y)$.
 
-Now, let's go to the Excel example. How can we practically calculate some of this by writing some code? When we deal with slightly larger scale, there is a scale of $5 \times 5$, I'd like to work it by hand; a scale with about $10 \times 20$, I'd like to do in Excel to model my calculation; and then once I feel confident about my calculation, I implement in PyTorch. So this is my preferred method of scaling up your learning. 
-
-So let me repeat some of the examples I showed you before, but I'm going to use black ink this time, because it's going to be quite colorful, this example I prepared for you. So let me just do the black ink. 
-
-As a review, what if we talked about this $f(x) = x$, $f(x, y) = y$? We talked about the three images in the previous example by hand. How can we code this up? The third image is $x + y$.
-
-Now, I'm going to select an image, so let me define this location as a particular cell. I want to just set $x$, so that's it. Then I copy and paste to the other location; it seems to be fine. I copy over here, also fine. But then I realize it's not working here. What's going on? 
-
-When we examine that, you realize that by default, when you copy and paste formulas, it uses relative position and relative references. So you're going to keep the relative cell relative to your location by the same distance, which is about four down. In this case, we don't want it to do that; we need to use **absolute reference**. This is an Excel technique we have to use quite a lot in this class, so I think this is a good way to introduce it.
-
-What I'd like to fix is all my $x$ values to this particular column—this column is where my $x$'s are. We want to fix the row to row 22. So what I want to do is fix this using a dollar sign (`$`) to say that I want to fix row 22, as 22 is something I don't want to change. But column `G`, I'm happy to change from column `G` to column `H`. 
-
-So now we have my function. Now I copy and paste this across. This is about 9 to 81 times—I could do it 81 times, but I don't want to do that by hand. So I bring out my mouse to select the whole area. Then I paste using **Paste Special -> Formulas**. 
+> **Goal of Classical & Modern CV:** Bridging raw pixel data with implicit functional representations to enable tasks like feature extraction, image generation, and classification.
 
 ---
 
-### Scaling Up & Formatting Patterns
+## 2. Essential Excel Techniques for Matrix Modeling
+Before coding in PyTorch or C++, Excel serves as an intermediate modeling tool for $10 \times 20$ to $25 \times 25$ grid sizes.
 
-Now I'm going to repeat similar logic, but I'll do it a lot faster this time. What I need to fix for $y$ is the column. So when I write the equation, I select $y$, but I don't want the column to change. I place a dollar sign (`$`) before the column letter. Every time I press `F2`, I can see the cell being highlighted, showing which square it depends on. Now I select the entire region and paste formulas to get my image function.
+### Absolute vs. Relative Referencing (`$`)
+When evaluating $f(x, y)$ on a 2D grid, spatial coordinates ($x$ and $y$) reside in specific header rows and columns.
+* **Fixing Rows (for $x$-coordinates):** Fix the row number using `G$22` so that copying vertically does not shift the selected $x$-coordinate row.
+* **Fixing Columns (for $y$-coordinates):** Fix the column letter using `$B33` so that copying horizontally does not shift the selected $y$-coordinate column.
+* **Fixing Parameters (Scalars):** Fix both row and column `$C$2` for static global parameters (e.g., $\sigma$ or $\alpha$).
 
-Lastly, I combine the two concepts: $f(x, y) = x + y$. Not only do I have to fix $y$, but I also fix $x$. I use absolute references strategically: fix row 22 for $x$ and fix column `Z` (or column reference) for $y$. 
-
-To visualize this, I can add a **Color Scale** (conditional formatting). The high positive values are green and low values are red. It makes it much easier to visualize that $f(x,y) = x + y$ forms a diagonal pattern.
-
----
-
-### Linear Functions & Slopes
-
-Let's do another function: $f(x, y) = x - y$.
-1. Select $x$ (e.g., row 51) and $y$ (e.g., column `B`).
-2. Fix $x$'s row (`$51`) and $y$'s column (`$B`).
-3. Copy and Paste Special Formulas across the $21 \times 21$ space.
-
-Comparing $x + y$ and $x - y$, you can see that $x + y$ goes diagonally one way, and $x - y$ flips the diagonal direction.
-
-Next, let's add coefficients:
-$$f(x, y) = 2x + 5y$$
-
-When we apply the color scale to $2x + 5y$, the gradient becomes flatter because the function changes much faster in $y$ ($5y$) and slower in $x$ ($2x$).
+### Efficient Grid Operations
+* **Paste Special Formulas:** Select the full $M \times N$ grid $\rightarrow$ **Paste Special ($\text{Alt}+\text{E}+\text{S}+\text{F}$)** $\rightarrow$ **Formulas**.
+* **Color Scales:** Use Conditional Formatting Color Scales (e.g., Red-Yellow-Green or Grayscale) to visualize numeric spatial patterns visually.
 
 ---
 
-### Handling Division by Zero with Epsilon
+## 3. Synthetic Image Functions $f(x, y)$
 
-What about $f(x, y) = \frac{x}{y}$?
+### A. Linear Functions & Spatial Orientation
+Linear combinations of spatial coordinates produce directional gradient patterns across the image grid.
 
-If we write `= X / Y` and copy it across, we get division by zero errors (`#DIV/0!`) wherever $y = 0$. 
+| Function Formula | Formula Pattern / Behavior | Geometric Pattern |
+| :--- | :--- | :--- |
+| $f(x, y) = x + y$ | Equal weight on both axes | Diagonal gradient (Top-Left to Bottom-Right) |
+| $f(x, y) = x - y$ | Subtraction flips gradient direction | Diagonal gradient (Bottom-Left to Top-Right) |
+| $f(x, y) = 2x + 5y$ | $y$ changes $2.5\times$ faster than $x$ | Flatter, steeper diagonal gradient along the $y$-axis |
 
-In practice, when implementing this, we add a small epsilon ($\epsilon$) to the denominator:
-$$f(x, y) = \frac{x}{y + 0.01}$$
+### B. Division Functions & Epsilon Regularization
+* **Function:** $f(x, y) = \frac{x}{y}$
+* **Issue:** Division by zero occurs along the axis where $y = 0$, causing `#DIV/0!` errors.
+* **Solution (Epsilon Regularization):** Introduce a small numerical stability term $\epsilon > 0$:
+  $$f(x, y) = \frac{x}{y + \epsilon} \quad (\text{e.g., } \epsilon = 0.01)$$
 
-Now, at $y = 0$, the value gets large but does not blow up into an error.
+### C. Distance Metrics & Norm Spaces
 
----
-
-## Transcript 2: Vector Norms ($L_1$ and $L_2$ Norm Images)
-
-### $L_1$ Norm Space
-
-Let's define an image that represents $L_1$ space:
+#### $L_1$ Norm (Manhattan / Diamond Distance)
 $$f(x, y) = |x| + |y|$$
+* **Excel Implementation:** `= ABS(x) + ABS(y)`
+* **Visual Output:** Diamond-shaped isosurfaces centered at the origin.
 
-1. Pick any cell and enter `= ABS(x) + ABS(y)`.
-2. Apply appropriate absolute column/row references.
-3. Copy and paste formulas across the region.
-4. Apply a color scale.
-
-The resulting pattern clearly forms a **diamond shape**.
-
----
-
-### $L_2$ Norm Space
-
-Now let's do $L_2$ norm space:
+#### $L_2$ Norm (Euclidean / Circular Distance)
 $$f(x, y) = \sqrt{x^2 + y^2}$$
-
-1. Enter `= SQRT(x^2 + y^2)`.
-2. Fix the reference rows and columns.
-3. Copy and paste formulas across the grid.
-4. Apply conditional color formatting.
-
-The resulting visualization shows **concentric circles**, which matches the geometric definition of distance/circles.
+* **Excel Implementation:** `= SQRT(x^2 + y^2)`
+* **Visual Output:** Concentric circular isosurfaces centered at the origin.
 
 ---
 
-## Transcript 3: 2D Gaussian Distribution Image
+## 4. Analytical Probability Functions: 2D Gaussian
 
-Now let's implement a 2D Gaussian distribution:
+### Mathematical Definition
+A 2D Gaussian distribution represents a localized smooth intensity spot:
+
 $$f(x, y) = \frac{1}{2\pi \sigma^2} \exp\left( -\frac{x^2 + y^2}{2\sigma^2} \right)$$
 
-### Setting Up Parameters:
-- Set $\sigma = 1$ (or $0.5$).
-- Pre-compute $2\sigma^2$ in a helper cell.
+Where:
+* $\sigma$ = Standard deviation (controls the blur/spread of the Gaussian kernel).
+* $\sigma^2$ = Variance.
 
-### Formula Implementation:
-1. In Excel, write: `= EXP(-(x^2 + y^2) / (2 * sigma_sq)) / (2 * PI() * sigma_sq)`.
-2. Fix references to the parameter cells using absolute references (`$`).
-3. Copy and paste formulas across the grid.
+### Verification via Discrete Integration
+For any continuous probability density function:
 
-### Verification (Discrete Integration):
-A fundamental property of a probability density function like the 2D Gaussian is that its integral equals 1. In this discrete grid, we can perform a double summation:
-$$\sum_{x} \sum_{y} f(x, y) \approx 1$$
+$$\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f(x, y) \, dx \, dy = 1$$
 
-Using `= SUM(region)` on our matrix confirms the total sum equals $1$. You can now interactively adjust $\sigma$ to see how the Gaussian light spot expands or contracts in real time.
+In a discrete image matrix, we verify this property by summing all pixel intensity values across the 2D grid:
 
----
+$$\sum_{x} \sum_{y} f(x, y) \approx 1.0$$
 
-## Transcript 4: Array Formulas, Linear Combinations & Masking
-
-Now let's talk about applying function operations to images using **Array Formulas**. 
-
-Suppose we have an image $F$ representing a computer monitor.
-
-### 1. Scalar Subtraction / Addition ($F \pm c$)
-Instead of copying a formula cell by cell, we can use an array formula:
-1. Select the entire output grid.
-2. Type `= F_array - 10` (or select a parameter cell $A$).
-3. Excel applies the scalar operation to every single element in the 2D array simultaneously.
-
-Adding a positive constant increases brightness (eventually saturating), while subtracting darkens the image.
+* If the discrete sum $\approx 1$, the continuous Gaussian calculation and normalization constant $\frac{1}{2\pi \sigma^2}$ are correctly implemented.
 
 ---
 
-### 2. Parameterized Linear Combination of Images
-Given two images $F$ and $G$, we can construct a linear blend parameterized by $\alpha \in [0, 1]$:
+## 5. Modern Image Operations using Dynamic Array Formulas
+
+Instead of cell-by-cell copying, modern spreadsheet and array engines perform operations on entire image matrices at once.
+
+### A. Scalar Operations (Brightness Control)
+Applying scalar addition or subtraction adjusts global image illumination:
+$$I_{\text{out}} = F \pm c$$
+* **Excel Array Syntax:** Select destination range $\rightarrow$ `= F_range + 10`
+* **Effect:** Positive constants brighten the image (saturating high values); negative constants darken the image.
+
+### B. Parameterized Linear Combination (Image Blending)
+Linear blending combines two images $F$ and $G$ using a mixing parameter $\alpha \in [0, 1]$:
+
 $$I_{\text{out}} = \alpha F + (1 - \alpha) G$$
 
-Using array formulas:
-1. Define $\alpha$ in a parameter cell (e.g., `0.5`).
-2. Write `= alpha * F_array + (1 - alpha) * G_array`.
-3. Adjusting $\alpha$ smoothly transitions between image $F$ (e.g., computer) and image $G$ (e.g., question mark).
+* **Excel Array Syntax:** `= alpha * F_range + (1 - alpha) * G_range`
+* **Behavior:**
+  * When $\alpha = 1.0 \rightarrow$ Output is purely Image $F$.
+  * When $\alpha = 0.0 \rightarrow$ Output is purely Image $G$.
+  * When $\alpha = 0.5 \rightarrow$ Equal 50/50 blend of both images.
 
----
+### C. Element-Wise Multiplication (Masking)
+Masking applies a binary or grayscale spatial filter $M$ to an image $F$:
 
-### 3. Element-wise Image Masking
-Masking is an element-wise multiplication between an image $F$ and a binary/grayscale mask $M$:
 $$I_{\text{out}} = F \odot M$$
 
-In Excel:
-1. Select the destination array.
-2. Type `= F_array * M_array`.
-3. Press enter to perform element-wise array multiplication.
-
-Changing values in the mask $M$ updates the masked image output in real-time.
+* **Excel Array Syntax:** `= F_range * M_range`
+* **Effect:** Pixels where $M(x,y) = 1$ pass through untouched; pixels where $M(x,y) = 0$ are suppressed to zero (black).
 
 ---
 
-## Summary & Conclusion
+## 6. Self-Assessment Review Questions
 
-In these exercises, we explored two extremes of image representation:
-1. **Highest Dimension:** Representing an image pixel by pixel as raw numerical arrays.
-2. **Lowest Dimension:** Representing an image purely as a mathematical function $f(x, y)$.
-
-Later in the course, classical image analysis and deep learning methods focus on bridging these extremes—learning underlying functional representations from raw pixel data to perform tasks like recognition, segmentation, and generative modeling.
+1. **Why is absolute row-referencing used for $x$ and absolute column-referencing used for $y$ when generating $2\text{D}$ functions?**
+2. **What geometric shapes do $L_1$ and $L_2$ norm functions generate when plotted as grayscale images?**
+3. **What is the purpose of adding an $\epsilon$ term to functions like $f(x, y) = \frac{x}{y}$?**
+4. **How do array formulas improve efficiency over standard relative-cell copying when blending images?**
+5. **How does changing the value of $\sigma$ affect the visual output and pixel sum of a 2D Gaussian image?**
